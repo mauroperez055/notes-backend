@@ -1,5 +1,7 @@
+require('dotenv').config(); // Importamos las variables de entorno
 const express = require('express'); // Importamos el módulo express
 const cors = require('cors'); // Importamos el módulo cors
+const Note = require('./models/note'); 
 
 const app = express(); // Creamos una aplicación de express
 
@@ -48,15 +50,24 @@ let notes = [ // Creamos un array de notas
 
 
 app.get('/', (request, response) => { // Definimos una ruta para la raíz del servidor
-  response.send('<h1>Hello World!</h1>'); // Enviamos una respuesta al cliente
+  response.send('<h1>Backend de app de notas funcionando</h1>'); // Enviamos una respuesta al cliente
 })
 
 // Endpoint para obtener todas las notas
 app.get('/api/notes', (request, response) => { // Definimos una ruta para /api/notes
-  response.json(notes); // Enviamos la respuesta al cliente en formato JSON 
+  Note.find({}).then(notes => {
+    response.json(notes); // Enviamos la respuesta al cliente en formato JSON 
+  })
 })
 
-// Endpoint para obtener una nota por su id
+// Obtener una nota individual con el metodo findById de mongoose
+app.get('/api/notes/:id', (request, response) => {
+  Note.findById(request.params.id).then(note => {
+    response.json(note);
+  })
+})
+
+/* // Endpoint para obtener una nota por su id
 app.get('/api/notes/:id', (request, response) => { // Definimos una ruta para /api/notes/:id
   const id = Number(request.params.id); // Obtenemos el id de la nota de los parámetros de la ruta
   const note = notes.find(note => note.id === id); // Buscamos la nota con el id correspondiente
@@ -66,7 +77,7 @@ app.get('/api/notes/:id', (request, response) => { // Definimos una ruta para /a
   } else {
     response.status(404).end(); // Si no encontramos la nota, enviamos un error 404
   }
-})
+}) */
 
 // Endpoint para eliminar una nota por su id
 app.delete('/api/notes/:id', (request, response) => { 
@@ -77,31 +88,35 @@ app.delete('/api/notes/:id', (request, response) => {
 })
 
 // Función para generar un id único para una nueva nota
-const generateId = () => {
+/* const generateId = () => {
   const maxId = notes.length > 0 // notes.length es mayor que 0? 
     ? Math.max(...notes.map(n => n.id)) // notes.map(n => n.id) es un array, con ... lo convertimos en una lista de argumentos para Math.max, que devuelve el id máximo
     : 0; // Si no, el id máximo es 0
   return maxId + 1; // Devolvemos el id máximo + 1
-}
+} */
 
 // Endpoint para crear una nueva nota
 app.post('/api/notes', (request, response) => { 
   const body = request.body; // Obtenemos el cuerpo de la petición
 
-  if (!body.content) { // Si el cuerpo no tiene contenido
+  if (body.content === undefined) { // Si el cuerpo no tiene contenido
     return response.status(400).json({ // Enviamos una respuesta al cliente con el código 400 (Bad Request)
       error: 'content missing' // Mensaje de error
     });
   }
 
-  const note = { // Creamos un objeto nota
+  const note = new Note ({ // Creamos un objeto nota
     content: body.content, // Asignamos el contenido de la nota
     important: body.important || false, // Asignamos la importancia de la nota, si no se especifica, por defecto es false
-    id: generateId(), // Generamos un id único para la nota
-  }
+    /* id: generateId(), // Generamos un id único para la nota */
+  })
 
-  notes = notes.concat(note); // Agregamos la nueva nota al array de notas
-  response.json(note); // Enviamos la respuesta al cliente en formato JSON
+  note.save().then(savedNote => {
+    response.json(savedNote);
+  })
+
+  /* notes = notes.concat(note); // Agregamos la nueva nota al array de notas
+  response.json(note); // Enviamos la respuesta al cliente en formato JSON */
 })
 
 // Middleware para capturar solicitudes a endpoints o rutas desconocidas
@@ -111,7 +126,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint); // Usamos el middleware unknownEndpoint
 
-const PORT = process.env.PORT || 3001; // Definimos el puerto en el que escuchará el servidor, si existe una variable de entorno PORT, la usamos, si no, usamos el puerto 3001
+const PORT = process.env.PORT;
 app.listen(PORT, () => { 
   console.log(`Server running on port ${PORT}`); 
 }); // Ponemos el servidor a escuchar en el puerto definido

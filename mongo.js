@@ -10,8 +10,7 @@ const password = process.argv[2]; // Obtenemos la contraseña de los argumentos
 
 // URL de conexión a la base de datos MongoDB
 const url = 
-  `mongodb+srv://maurodb:${password}@cluster0.p4bfxiy.mongodb.net/? 
-  retryWrites=true&w=majority&appName=Cluster0`
+  `mongodb+srv://maurodb:${password}@cluster0.p4bfxiy.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0`
 
 mongoose.set('strictQuery', false); // Configuramos Mongoose para que no use consultas estrictas
 
