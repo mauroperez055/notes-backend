@@ -59,27 +59,28 @@ app.get("/api/notes/:id", (request, response, next) => {
 });
 
 // Endpoint para crear una nueva nota
-app.post("/api/notes", (request, response) => {
+app.post("/api/notes", (request, response, next) => {
   const body = request.body; // Obtenemos el cuerpo de la petición
 
-  if (body.content === undefined) {
+  /* if (body.content === undefined) {
     // Si el cuerpo no tiene contenido
     return response.status(400).json({
       // Enviamos una respuesta al cliente con el código 400 (Bad Request)
       error: "content missing", // Mensaje de error
     });
-  }
+  } */
 
   const note = new Note({
     // Creamos un objeto nota
     content: body.content, // Asignamos el contenido de la nota
-    important: body.important || false, // Asignamos la importancia de la nota, si no se especifica, por defecto es false
-    /* id: generateId(), // Generamos un id único para la nota */
+    important: body.important || false // Asignamos la importancia de la nota, si no se especifica, por defecto es false
   });
 
-  note.save().then((savedNote) => {
-    response.json(savedNote);
-  });
+  note.save()
+    .then((savedNote) => {
+      response.json(savedNote);
+  })
+  .catch(error => next(error)); // Pasamos el error al siguiente middleware de manejo de errores
 });
 
 // Endpoint para eliminar una nota por su id
@@ -93,20 +94,24 @@ app.delete("/api/notes/:id", (request, response) => {
 
 // Endpoint para actualizar una nota por su id
 app.put('/api/notes/:id', (request, response, next) => {
-  const body = request.body;
+  const { content, important } = request.body;
 
   // Creamos un objeto nota con el contenido y la importancia actualizados
-  const note = {
+  /* const note = {
     content: body.content,
     important: body.important
-  }
+  } */
 
   //Actualizamos la nota y con new:true hacemos que la promesa devuelva la nota actualizada y no la nota antigua
-  Note.findByIdAndUpdate(request.params.id, note, {new: true}) 
-    .then(updatedNote => {
-      response.json(updatedNote);
-    })
-    .catch(error => next(error));
+  Note.findByIdAndUpdate(
+    request.params.id,
+    { content, important },
+    { new: true, runValidators: true, context: 'query' } // Con runValidators: true hacemos que se apliquen las validaciones del esquema
+  )
+  .then(updatedNote => {
+    response.json(updatedNote);
+  })
+  .catch(error => next(error)); // Pasamos el error al siguiente middleware de manejo de errores
 })
 
 
@@ -129,6 +134,8 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') { // Si el error es un CastError (error de conversión de tipo)
     // Enviamos una respuesta al cliente con el código 400 (Bad Request) y un mensaje de error
     return response.statuts(400).send({ error: 'malformatted id' }); 
+  } else if (error.name === 'ValidationError') { // Si el error es un ValidationError (error de validación)
+    return response.status(400).json({ error: error.message });
   }
 
   next(error); // Pasamos el error al siguiente middleware

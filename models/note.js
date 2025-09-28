@@ -17,7 +17,11 @@ mongoose.connect(url)
 
 // Definimos el esquema de la colección de notas
 const noteSchema = new mongoose.Schema({ 
-  content: String,
+  content: { // Definimos el campo content con validaciones
+    type: String, 
+    minLength: 5,
+    required: true // El campo es obligatorio
+  },
   important: Boolean,
 })
 
