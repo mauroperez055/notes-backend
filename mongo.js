@@ -31,7 +31,7 @@ const Note = mongoose.model('Note', noteSchema);
   important: false,
 }) */
 
-Note.find({important: false}).then(result => { // Buscamos todas las notas en la base de datos
+Note.find({}).then(result => { // Buscamos todas las notas en la base de datos
   result.forEach(note => { // Recorremos las notas encontradas
     console.log(note); // Mostramos cada nota en la consola
   })
