@@ -2,10 +2,9 @@ const notesRouter = require("express").Router();
 const Note = require("../models/note");
 
 // Endpoint para obtener todas las notas
-notesRouter.get("/", (request, response) => {
-  Note.find({}).then((notes) => { 
-    response.json(notes);
-  })
+notesRouter.get('/', async (request, response) => { 
+  const notes = await Note.find({})
+  response.json(notes)
 })
 
 // Obtener una nota individual con el metodo findById de mongoose
@@ -22,7 +21,7 @@ notesRouter.get("/:id", (request, response, next) => {
 });
 
 // Endpoint para crear una nueva nota
-notesRouter.post("/", (request, response, next) => {
+notesRouter.post("/", async (request, response, next) => {
   const body = request.body; // Obtenemos el cuerpo de la petición
 
   const note = new Note({ // Creamos un objeto nota
@@ -30,12 +29,8 @@ notesRouter.post("/", (request, response, next) => {
     important: body.important || false // Asignamos la importancia de la nota, si no se especifica, por defecto es false
   });
 
-  note
-    .save()
-    .then((savedNote) => {
-      response.json(savedNote);
-  })
-  .catch(error => next(error)); // Pasamos el error al siguiente middleware de manejo de errores
+  const savedNote = await note.save(); // Guardamos la nota en la base de datos
+  response.status(201).json(savedNote); // Respondemos con la nota guardada y el código 201 (Created)
 });
 
 // Endpoint para eliminar una nota por su id
