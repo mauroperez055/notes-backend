@@ -8,17 +8,18 @@ notesRouter.get('/', async (request, response) => {
 })
 
 // Obtener una nota individual con el metodo findById de mongoose
-notesRouter.get("/:id", (request, response, next) => {
-  Note.findById(request.params.id)
-    .then((note) => {   
-      if (note) { 
-        response.json(note);
-      } else {
-        response.status(404).end();
-      }
-    })
-    .catch(error => next(error)); // Pasamos el error al siguiente middleware de manejo de errores
-});
+notesRouter.get('/:id', async (request, response, next) => {
+  try {
+    const note = await Note.findById(request.params.id)
+    if (note) {
+      response.json(note)
+    } else {
+      response.status(404).end()
+    }
+  } catch(exception) {
+    next(exception)
+  }
+})
 
 // Endpoint para crear una nueva nota
 notesRouter.post("/", async (request, response, next) => {
@@ -28,19 +29,23 @@ notesRouter.post("/", async (request, response, next) => {
     content: body.content, // Asignamos el contenido de la nota
     important: body.important || false // Asignamos la importancia de la nota, si no se especifica, por defecto es false
   });
-
-  const savedNote = await note.save(); // Guardamos la nota en la base de datos
-  response.status(201).json(savedNote); // Respondemos con la nota guardada y el código 201 (Created)
+  try {
+    const savedNote = await note.save(); // Guardamos la nota en la base de datos
+    response.status(201).json(savedNote); // Respondemos con la nota guardada y el código 201 (Created)
+  } catch(exception) {
+    next(exception); // Pasamos el error al siguiente middleware de manejo de errores
+  }
 });
 
 // Endpoint para eliminar una nota por su id
-notesRouter.delete("/:id", (request, response, next) => {
-  Note.findByIdAndDelete(request.params.id)
-    .then(() => {
-      response.status(204).end(); // Enviamos una respuesta al cliente con el código 204 (No Content)
-    })
-    .catch(error => next(error)); // Pasamos el error al siguiente middleware de manejo de errores
-});
+notesRouter.delete('/:id', async (request, response, next) => {
+  try {
+    await Note.findByIdAndDelete(request.params.id)
+    response.status(204).end()
+  } catch(exception) {
+    next(exception)
+  }
+})
 
 // Endpoint para actualizar una nota por su id
 notesRouter.put('/:id', (request, response, next) => {
