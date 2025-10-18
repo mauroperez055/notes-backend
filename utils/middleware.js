@@ -20,7 +20,7 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') { // Si el error es un CastError (error de conversión de tipo)
     // Enviamos una respuesta al cliente con el código 400 (Bad Request) y un mensaje de error
-    return response.statuts(400).send({ error: 'malformatted id' }); 
+    return response.status(400).send({ error: 'malformatted id' }); 
   } else if (error.name === 'ValidationError') { // Si el error es un ValidationError (error de validación)
     return response.status(400).json({ error: error.message });
   }
