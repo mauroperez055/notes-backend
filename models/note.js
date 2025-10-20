@@ -8,6 +8,10 @@ const noteSchema = new mongoose.Schema({
     required: true // El campo es obligatorio
   },
   important: Boolean,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 })
 
 // Modificamos el método toJSON del esquema para transformar la salida al convertir a JSON
